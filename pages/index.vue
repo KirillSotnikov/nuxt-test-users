@@ -10,7 +10,6 @@
     <transition name="fade">
       <app-text-alert
         v-if="visibleAlert"
-
         :text="alertText"
         :closeModal="closeAlertModal"
       />
@@ -27,6 +26,7 @@
 
     <app-radio-filter
       :handleChange="handleChange"
+      :setPage="setPage"
       :checkedValue="checkedValue"
     />
   </div>
@@ -54,9 +54,12 @@ export default {
       checkedValue: 'any'
     }
   },
-  // async asyncData ({ $axios }) {
-  //   const ip = await $axios.$get('http://icanhazip.com')
-  //   return { ip }
+  // async asyncData ({ $axios, store }) {
+  //   await store.dispatch('fetchUsers', { page: 1, rowsPerPage: 5 })
+  //   const userList = await store.getters.getUsers
+  //   return {
+  //     userList
+  //   }
   // },
   computed: {
     userList () {
@@ -68,11 +71,12 @@ export default {
         return users
       }
     },
-    filteredUsers () {
+    genderFilteredUsers () {
       const genderFilteredUsers = this.userList.filter(user => this.checkedValue !== 'any' ? user.gender === this.checkedValue : true)
-
-      const paginationUsers = genderFilteredUsers.slice((this.page - 1) * this.rowsPerPage, this.page * this.rowsPerPage)
-
+      return genderFilteredUsers
+    },
+    filteredUsers () {
+      const paginationUsers = this.genderFilteredUsers.slice((this.page - 1) * this.rowsPerPage, this.page * this.rowsPerPage)
       return paginationUsers
     }
   },
@@ -87,6 +91,10 @@ export default {
 
     openAlertModal (text) {
       this.visibleAlert = true
+      this.setModalText(text)
+    },
+
+    setModalText (text) {
       this.alertText = text
     },
 
@@ -95,30 +103,54 @@ export default {
         this.page = this.page - 1
       }
     },
+
+    setPage (value = 1) {
+      this.handleChange('page', value)
+    },
+
     nextPage () {
-      if (this.page < this.userList.length / this.rowsPerPage) {
-        this.page = this.page + 1
-      } else {
-        this.page = this.page + 1
-        if (this.checkedValue === 'any') {
-          this.fetchUsers({ page: this.page, rowsPerPage: this.rowsPerPage })
-        } else {
-          this.fetchUsers({ page: this.page, rowsPerPage: this.rowsPerPage, gender: this.checkedValue })
+      this.setPage(this.page + 1)
+      if (this.page > this.genderFilteredUsers.length / this.rowsPerPage) {
+        const payload = {
+          page: this.page,
+          rowsPerPage: this.rowsPerPage,
+          gender: false
         }
+        if (this.checkedValue !== 'any') {
+          payload.gender = this.checkedValue
+        }
+        this.fetchUsers(payload)
       }
     },
 
     async downloadMore () {
-      await this.fetchUsers({ page: this.page + 1, rowsPerPage: this.rowsPerPage })
-      this.visibleAlert = true
-      this.alertText = 'Uploaded successfully'
+      const payload = {
+        page: this.page + 1,
+        rowsPerPage: this.rowsPerPage,
+        gender: false
+      }
+      if (this.checkedValue !== 'any') {
+        payload.gender = this.checkedValue
+      }
+      await this.fetchUsers(payload)
+
+      this.openAlertModal('Uploaded successfully')
     },
 
-    async changeInput (name, value) {
+    changeInput (name, value) {
       this.handleChange(name, value)
+      this.setPage(1)
 
       if (this.rowsPerPage > this.filteredUsers.length) {
-        await this.fetchUsers({ page: this.page, rowsPerPage: this.rowsPerPage - this.filteredUsers.length })
+        const payload = {
+          page: this.page,
+          rowsPerPage: this.rowsPerPage - this.filteredUsers.length,
+          gender: false
+        }
+        if (this.checkedValue !== 'any') {
+          payload.gender = this.checkedValue
+        }
+        this.fetchUsers(payload)
       }
     },
 

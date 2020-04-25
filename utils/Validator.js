@@ -16,6 +16,13 @@ export default class Validator {
     return this
   }
 
+  maxSize (size) {
+    if (this.value > size) {
+      this.addError(`Значение не должно быть больше ${size}`)
+    }
+    return this
+  }
+
   notZero () {
     if (this.value <= 0) {
       this.addError('Значение должно быть больше 0')

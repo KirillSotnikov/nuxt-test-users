@@ -34,7 +34,11 @@ export default {
   methods: {
     inputChange (name, value) {
       const validator = new Validator(value)
-      const { result, errors } = validator.isEmpty().notZero().getResult()
+      const { result, errors } = validator
+        .isEmpty()
+        .notZero()
+        .maxSize(20)
+        .getResult()
       if (errors.length > 0) {
         this.errors = errors
       } else {

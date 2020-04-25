@@ -10,13 +10,13 @@
     </div>
     <div class="footer">
       <div class="footer__info">
-        <img @mouseover="onHoverHandler('name')" class="footer__icon" src="~assets/name.svg" alt="">
+        <img :class="{'active' : hoveredItem === 'name'}" @mouseover="setHoverItem('name')" class="footer__icon" src="~assets/name.svg" alt="">
       </div>
       <div class="footer__info">
-        <img @mouseover="onHoverHandler('email')" class="footer__icon" src="~assets/mail.svg" alt="">
+        <img :class="{'active' : hoveredItem === 'email'}" @mouseover="setHoverItem('email')" class="footer__icon" src="~assets/mail.svg" alt="">
       </div>
       <div class="footer__info">
-        <img @mouseover="onHoverHandler('dob')" class="footer__icon" src="~assets/birth.svg" alt="">
+        <img :class="{'active' : hoveredItem === 'dob'}" @mouseover="setHoverItem('dob')" class="footer__icon" src="~assets/birth.svg" alt="">
       </div>
     </div>
   </div>
@@ -32,19 +32,20 @@ export default {
   },
   data () {
     const { email, gender, dob: { age } } = this.user
-    const pageWidth = window.innerWidth
-    let imageType = 'large'
-    if (pageWidth < 500) {
-      imageType = 'thumbnail'
-    } else if (pageWidth < 800) {
-      imageType = 'medium'
-    }
+    // const pageWidth = window.innerWidth
+    // let imageType = 'large'
+    // if (pageWidth < 500) {
+    //   imageType = 'thumbnail'
+    // } else if (pageWidth < 800) {
+    //   imageType = 'medium'
+    // }
 
     return {
       alertText: `My email is ${email}. Gender is ${gender}. Age is ${age}.`,
-      imageType,
+      imageType: 'large',
       subtitle: '',
-      title: ''
+      title: '',
+      hoveredItem: 'name'
     }
   },
   filters: {
@@ -59,24 +60,45 @@ export default {
       return `${date}/${month}/${year}`
     }
   },
+  updated () {
+    this.onHoverHandler(this.hoveredItem)
+  },
   mounted () {
-    this.onHoverHandler('name')
+    this.onHoverHandler(this.hoveredItem)
   },
   methods: {
+    setHoverItem (item) {
+      this.hoveredItem = item
+    },
     onHoverHandler (type) {
+      const data = {}
       switch (type) {
         case 'name' :
-          this.subtitle = 'Hi, My name is'
-          this.title = `${this.user.name.title} ${this.user.name.first} ${this.user.name.last}`
+          data.subtitle = 'Hi, My name is'
+          data.title = `${this.user.name.title} ${this.user.name.first} ${this.user.name.last}`
           break
         case 'email' :
-          this.subtitle = 'My email address is'
-          this.title = this.user.email
+          data.subtitle = 'My email address is'
+          data.title = this.user.email
           break
         case 'dob' :
-          this.subtitle = 'My birthday is'
-          this.title = this.$options.filters.date(this.user.dob.date)
+          data.subtitle = 'My birthday is'
+          data.title = this.$options.filters.date(this.user.dob.date)
+          break
+        default:
+          break
       }
+
+      this.setHoverData(data)
+    },
+    setHoverData ({ title = 'Something went wrong', subtitle = 'Oooooops' }) {
+      this.subtitle = subtitle
+      this.title = title
+    }
+  },
+  watch: {
+    hoveredItem (val) {
+      this.onHoverHandler(val)
     }
   }
 }
@@ -135,6 +157,11 @@ export default {
   }
   &__icon{
     height: 30px;
+    transition: all .4s ease-in-out;
+    &.active{
+      background: #3498db;
+      padding: 5px;
+    }
   }
 }
 </style>

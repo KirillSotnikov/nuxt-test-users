@@ -32,10 +32,14 @@ export default {
     },
     handleChange: {
       type: Function
+    },
+    setPage: {
+      type: Function
     }
   },
   methods: {
     changeHandler (value) {
+      this.setPage(1)
       this.handleChange('checkedValue', value)
     }
   }
