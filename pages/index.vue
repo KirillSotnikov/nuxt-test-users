@@ -100,7 +100,7 @@ export default {
 
     prevPage () {
       if (this.page !== 1) {
-        this.page = this.page - 1
+        this.setPage(this.page - 1)
       }
     },
 
